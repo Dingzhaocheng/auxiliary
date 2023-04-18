@@ -1,0 +1,13 @@
+{
+  "name": "auxiliary",
+  "version": "1.0.0",
+  "description": "it's a command-line tool written in Go for publishing npm packages to a private registry.",
+  "bin": {
+    "auxiliary": "./bin/auxiliary_darwin_amd64"
+  },
+  "author": {
+    "name": "dinn",
+    "email": "ding526123@gmail.com"
+  },
+  "license": "MIT"
+}
