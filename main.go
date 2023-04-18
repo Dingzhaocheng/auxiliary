@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -34,20 +35,6 @@ func openbrowser(url string) {
 		log.Fatal(err)
 	}
 
-}
-
-func removeNpmrc() error {
-	npmrcPath := filepath.Join(cwd, ".npmrc")
-	_, err := os.Stat(npmrcPath)
-	if os.IsNotExist(err) {
-		return err
-	}
-
-	if err := os.Remove(npmrcPath); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 type PackageJSON struct {
@@ -78,6 +65,60 @@ type Config struct {
 	Username     string `yaml:"username"`
 	Password     string `yaml:"password"`
 	Email        string `yaml:"email"`
+}
+
+func readNpmrc(npmrcPath string) (map[string]string, error) {
+	contentMap := make(map[string]string)
+	contentBytes, err := ioutil.ReadFile(npmrcPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return contentMap, nil
+		}
+		return nil, err
+	}
+
+	content := string(contentBytes)
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.Split(line, "=")
+		if len(parts) != 2 {
+			continue
+		}
+		contentMap[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
+	}
+	return contentMap, nil
+}
+
+func updateNpmrc(config *Config) error {
+	npmrcPath := filepath.Join(cwd, ".npmrc")
+	authString := fmt.Sprintf("%s:%s", config.Username, config.Password)
+	authToken := base64.StdEncoding.EncodeToString([]byte(authString))
+
+	contentMap, err := readNpmrc(npmrcPath)
+	if err != nil {
+		return err
+	}
+
+	contentMap["_auth"] = authToken
+	contentMap["username"] = config.Username
+	contentMap["password"] = config.Password
+	contentMap["email"] = config.Email
+	contentMap["always-auth"] = "true"
+	contentMap["registry"] = config.VerdaccioURL
+
+	var newContent string
+	for key, value := range contentMap {
+		newContent += fmt.Sprintf("%s=%s\n", key, value)
+	}
+
+	if err = ioutil.WriteFile(npmrcPath, []byte(newContent), 0644); err != nil {
+		return err
+	}
+	return nil
 }
 
 func main() {
@@ -141,17 +182,9 @@ func checkNpmInstalled() error {
 }
 
 func npmLogin(config *Config) error {
-	removeErr := removeNpmrc()
-	if removeErr != nil {
-		return removeErr
-	}
-	authString := fmt.Sprintf("%s:%s", config.Username, config.Password)
-	authToken := base64.StdEncoding.EncodeToString([]byte(authString))
-	npmrcContent := fmt.Sprintf("registry=%s\n_auth=%s\nemail=%s\nalways-auth=true\n", config.VerdaccioURL, authToken, config.Email)
-	npmrcPath := filepath.Join(cwd, ".npmrc")
-	err := ioutil.WriteFile(npmrcPath, []byte(npmrcContent), 0644)
+	err := updateNpmrc(config)
 	if err != nil {
-		return fmt.Errorf("failed to write .npmrc file: %w", err)
+		return err
 	}
 
 	return nil

@@ -40,4 +40,3 @@ Run the script:
 ```shell
 npm run publish
 ```
-
