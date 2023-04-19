@@ -1,14 +1,14 @@
-# auxiliary
+# ausiliario
 
-`auxiliary` is a Go package for running a local private registry using verdaccio
-and automating package publishing.
+`ausiliario` is a Go package for running a local private registry using
+verdaccio and automating package publishing.
 
 ## Installation
 
-You can install auxiliary using the following npm command:
+You can install ausiliario using the following npm command:
 
 ```shell
-npm install auxiliary
+npm install ausiliario
 ```
 
 ## Usage
@@ -25,13 +25,13 @@ password:your-password
 email: your-email
 ```
 
-#### 2. Use the auxiliary program for login and publish
+#### 2. Use the ausiliario program for login and publish
 
 Add the publish script to your package.json:
 
 ```
 "scripts": {
-  "publish": "auxiliary"
+  "publish": "ausiliario"
 }
 ```
 

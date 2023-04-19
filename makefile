@@ -1,5 +1,5 @@
 # 设置变量
-BINARY_NAME=auxiliary
+BINARY_NAME=ausiliario
 
 build:
 	GOOS=linux GOARCH=amd64 go build -o bin/$(BINARY_NAME)_linux_amd64 main.go
@@ -10,7 +10,7 @@ clean:
 	rm $(BINARY_NAME)_*
 
 publish:
-	./bin/auxiliary_darwin_amd64
+	./bin/ausiliario_darwin_amd64
 	
 
 .PHONY: build clean
